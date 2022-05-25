@@ -3,6 +3,8 @@ const {
 	listContacts,
 	getContactById,
 	addContact,
+	removeContact,
+	updateContact,
 } = require("../../models/contacts");
 const { validate } = require("../../middlewares/validate");
 const {
@@ -31,12 +33,22 @@ router.post("/", validate(createContactSchema), async (req, res, next) => {
 	res.status(201).send(contact);
 });
 
-router.delete("/:contactId", async (req, res, next) => {
-	res.json({ message: "remove contact" });
+router.delete("/:id", async (req, res, next) => {
+	const deletedId = await removeContact(req.params.id);
+	if (!deletedId) {
+		res.status(404).send("Not found");
+	} else {
+		res.status(200).send("Contact deleted");
+	}
 });
 
-router.put("/:contactId", async (req, res, next) => {
-	res.json({ message: "update contact" });
+router.put("/:id", validate(updateContactSchema), async (req, res, next) => {
+	const contact = await updateContact(req.params.id, req.body);
+	if (!contact) {
+		res.status(404).send("Not found");
+	} else {
+		res.status(200).send(contact);
+	}
 });
 
 module.exports = router;

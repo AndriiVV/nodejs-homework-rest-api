@@ -30,14 +30,14 @@ const removeContact = async (contactId) => {
 	const contacts = await listContacts();
 
 	if (contacts.findIndex((el) => el.id === contactId) === -1) {
-		return console.log("Unable to remove non-exist contactId");
+		return null;
 	}
 
 	const contactsList = [...contacts].filter(({ id }) => id !== contactId);
 
 	try {
 		await fs.writeFile(contactsPath, JSON.stringify(contactsList));
-		return console.log("contactId removed");
+		return contactId;
 	} catch (err) {
 		err.message = "removeContact error";
 		throw new Error(err.message);
@@ -73,6 +73,12 @@ const addContact = async (body) => {
 const updateContact = async (contactId, body) => {
 	const contacts = await listContacts();
 
+	const findIndex = contacts.findIndex((el) => el.id === contactId);
+
+	if (findIndex === -1) {
+		return null;
+	}
+
 	const contactsList = contacts.map((el) =>
 		el.id === contactId
 			? { ...el, name: body.name, email: body.email, phone: body.phone }
@@ -81,6 +87,7 @@ const updateContact = async (contactId, body) => {
 
 	try {
 		await fs.writeFile(contactsPath, JSON.stringify(contactsList));
+		return contactsList[findIndex];
 	} catch (err) {
 		err.message = "addContact error";
 		throw new Error(err.message);

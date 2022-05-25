@@ -63,6 +63,7 @@ const addContact = async (body) => {
 
 	try {
 		await fs.writeFile(contactsPath, JSON.stringify(contactsList));
+		return contactsList[contactsList.length - 1];
 	} catch (err) {
 		err.message = "addContact error";
 		throw new Error(err.message);

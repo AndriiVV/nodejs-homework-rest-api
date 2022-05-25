@@ -1,5 +1,14 @@
 const express = require("express");
-const { listContacts, getContactById } = require("../../models/contacts");
+const {
+	listContacts,
+	getContactById,
+	addContact,
+} = require("../../models/contacts");
+const { validate } = require("../../middlewares/validate");
+const {
+	createContactSchema,
+	updateContactSchema,
+} = require("../../models/schemas");
 
 const router = express.Router();
 
@@ -17,8 +26,9 @@ router.get("/:id", async (req, res, next) => {
 	}
 });
 
-router.post("/", async (req, res, next) => {
-	res.json({ message: "add contact" });
+router.post("/", validate(createContactSchema), async (req, res, next) => {
+	const contact = await addContact(req.body);
+	res.status(201).send(contact);
 });
 
 router.delete("/:contactId", async (req, res, next) => {

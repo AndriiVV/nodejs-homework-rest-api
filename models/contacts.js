@@ -1,19 +1,103 @@
-// const fs = require('fs/promises')
+const fs = require("fs").promises;
+const path = require("path");
 
-const listContacts = async () => {}
+const contactsPath = path.join(__dirname, "./contacts.json");
 
-const getContactById = async (contactId) => {}
+const listContacts = async () => {
+	try {
+		const data = await fs.readFile(contactsPath);
+		const result = JSON.parse(data);
+		// console.log(result);
+		return result;
+	} catch (err) {
+		err.message = "listContacts error";
+		throw new Error(err.message);
+	}
+};
 
-const removeContact = async (contactId) => {}
+const getContactById = async (contactId) => {
+	try {
+		const data = await fs.readFile(contactsPath);
+		const result = JSON.parse(data).filter((el) => el.id === contactId);
+		return result;
+	} catch (err) {
+		err.message = "getContactById error";
+		throw new Error(err.message);
+	}
+};
 
-const addContact = async (body) => {}
+const removeContact = async (contactId) => {
+	const contacts = await listContacts();
 
-const updateContact = async (contactId, body) => {}
+	if (contacts.findIndex((el) => el.id === contactId) === -1) {
+		return null;
+	}
+
+	const contactsList = [...contacts].filter(({ id }) => id !== contactId);
+
+	try {
+		await fs.writeFile(contactsPath, JSON.stringify(contactsList));
+		return contactId;
+	} catch (err) {
+		err.message = "removeContact error";
+		throw new Error(err.message);
+	}
+};
+
+const addContact = async (body) => {
+	const contacts = await listContacts();
+	const newContact = {
+		id: 0,
+		name: body.name,
+		email: body.email,
+		phone: body.phone,
+	};
+	const contactsList = [...contacts, newContact].map(
+		({ name, email, phone }, index) => ({
+			id: `${index + 1}`,
+			name,
+			email,
+			phone,
+		})
+	);
+
+	try {
+		await fs.writeFile(contactsPath, JSON.stringify(contactsList));
+		return contactsList[contactsList.length - 1];
+	} catch (err) {
+		err.message = "addContact error";
+		throw new Error(err.message);
+	}
+};
+
+const updateContact = async (contactId, body) => {
+	const contacts = await listContacts();
+
+	const findIndex = contacts.findIndex((el) => el.id === contactId);
+
+	if (findIndex === -1) {
+		return null;
+	}
+
+	const contactsList = contacts.map((el) =>
+		el.id === contactId
+			? { ...el, name: body.name, email: body.email, phone: body.phone }
+			: el
+	);
+
+	try {
+		await fs.writeFile(contactsPath, JSON.stringify(contactsList));
+		return contactsList[findIndex];
+	} catch (err) {
+		err.message = "addContact error";
+		throw new Error(err.message);
+	}
+};
 
 module.exports = {
-  listContacts,
-  getContactById,
-  removeContact,
-  addContact,
-  updateContact,
-}
+	listContacts,
+	getContactById,
+	removeContact,
+	addContact,
+	updateContact,
+};

@@ -17,7 +17,7 @@ class ContactsServer {
 		this.#initMiddlewares();
 		this.#initRoutes();
 		this.#initErrorHandling();
-		this.#startListening();
+		this.#startListening(); 
 	}
 
 	#initServer() {
@@ -33,7 +33,7 @@ class ContactsServer {
 	async #initDatabase() {
 		try {
 			await mongoose.connect(this.#config.database.url);
-			console.log("Successfully connected to DB");
+			console.log("Database connection successful");
 		} catch (err) {
 			console.log("Database connection error", err);
 			process.exit(1);

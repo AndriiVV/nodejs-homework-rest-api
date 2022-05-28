@@ -1,37 +1,71 @@
 const express = require("express");
-const logger = require("morgan");
-const cors = require("cors");
+const dotenv = require("dotenv");
+const path = require("path");
+const morgan = require("morgan");
+const mongoose = require("mongoose");
+const { getConfig } = require("./config");
+const { contactsController } = require("./models/contacts.controller");
 
-const contactsRouter = require("./routes/api/contacts");
+class ContactsServer {
+	#app;
+	#config;
 
-const app = express();
+	async start() {
+		this.#initServer();
+		this.#initConfig();
+		await this.#initDatabase();
+		this.#initMiddlewares();
+		this.#initRoutes();
+		this.#initErrorHandling();
+		this.#startListening();
+	}
 
-const formatsLogger = app.get("env") === "development" ? "dev" : "short";
+	#initServer() {
+		this.#app = express();
+	}
 
-app.use(logger(formatsLogger));
-app.use(cors());
-app.use(express.json());
+	#initConfig() {
+		const envPath = path.join(__dirname, "./.env");
+		dotenv.config({ path: envPath });
+		this.#config = getConfig();
+	}
 
-app.use("/api/contacts", contactsRouter);
+	async #initDatabase() {
+		try {
+			await mongoose.connect(this.#config.database.url);
+			console.log("Successfully connected to DB");
+		} catch (err) {
+			console.log("Database connection error", err);
+			process.exit(1);
+		}
+	}
 
-app.use((_, res, __) => {
-	res.status(404).json({
-		status: "error",
-		code: 404,
-		message: "Use api on routes: /api/contacts",
-		data: "Not found",
-	});
-});
+	#initMiddlewares() {
+		this.#app.use(express.json());
+		this.#app.use(morgan("combined"));
+	}
 
-app.use((err, _, res, __) => {
-	res
-		.status(500)
-		.json({
-			status: "fail",
-			code: 500,
-			message: err.message,
-			data: "Internal Server errorE",
+	#initRoutes() {
+		this.#app.use("/api/contacts", contactsController);
+	}
+
+	#initErrorHandling() {
+		this.#app.use((err, req, res, next) => {
+			const statusCode = err.status || 500;
+
+			if (statusCode >= 500) {
+				console.log(err);
+			}
+
+			res.status(statusCode).send(err.message);
 		});
-});
+	}
 
-module.exports = app;
+	#startListening() {
+		this.#app.listen(this.#config.port, () => {
+			console.log("Server started listening on port", this.#config.port);
+		});
+	}
+}
+
+module.exports.ContactsServer = ContactsServer;

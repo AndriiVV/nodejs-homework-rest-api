@@ -1,143 +1,64 @@
-const service = require("./contacts.service");
+const { Router } = require("express");
+const { validate } = require("../middlewares/validate");
+const {
+	createContactSchema,
+	updateContactSchema,
+	updateFavoriteSchema,
+} = require("./schemas");
+const { contactsService } = require("./contacts.service");
+const { catchErrors } = require("../middlewares/catchErrors");
 
-const getAll = async (req, res, next) => {
-	try {
-		const results = await service.listContacts();
-		console.log(results);
-		res.json({
-			status: "success",
-			code: 200,
-			data: {
-				contacts: results,
-			},
-		});
-	} catch (e) {
-		console.error(e);
-		next(e);
-	}
-};
+const router = Router();
 
-const getById = async (req, res, next) => {
-	const { id } = req.params;
-	try {
-		const result = await service.getContactById(id);
-		if (result) {
-			res.json({
-				status: "success",
-				code: 200,
-				data: { contact: result },
-			});
-		} else {
-			res.status(404).json({
-				status: "error",
-				code: 404,
-				message: `Not found task id: ${id}`,
-				data: "Not Found",
-			});
-		}
-	} catch (e) {
-		console.error(e);
-		next(e);
-	}
-};
+router.get(
+	"/",
+	catchErrors(async (req, res, next) => {
+		const contacts = await contactsService.getAll();
+		res.status(200).send(contacts);
+	})
+);
 
-const add = async (req, res, next) => {
-	const { name, email, phone } = req.body;
-	try {
-		const result = await service.addContact({ name, email, phone });
+router.get(
+	"/:id",
+	catchErrors(async (req, res, next) => {
+		const contact = await contactsService.getById(req.params.id);
+		res.status(200).send(contact);
+	})
+);
 
-		res.status(201).json({
-			status: "success",
-			code: 201,
-			data: { contact: result },
-		});
-	} catch (e) {
-		console.error(e);
-		next(e);
-	}
-};
+router.post(
+	"/",
+	validate(createContactSchema),
+	catchErrors(async (req, res, next) => {
+		const contact = await contactsService.create(req.body);
+		res.status(201).send(contact);
+	})
+);
 
-const update = async (req, res, next) => {
-	const { id } = req.params;
-	const { name, email, phone } = req.body;
-	try {
-		const result = await service.updateContact(id, { name, email, phone });
-		if (result) {
-			res.json({
-				status: "success",
-				code: 200,
-				data: { contact: result },
-			});
-		} else {
-			res.status(404).json({
-				status: "error",
-				code: 404,
-				message: `Not found task id: ${id}`,
-				data: "Not Found",
-			});
-		}
-	} catch (e) {
-		console.error(e);
-		next(e);
-	}
-};
+router.put(
+	"/:id",
+	validate(updateContactSchema),
+	catchErrors(async (req, res, next) => {
+		const contact = await contactsService.updateOne(req.params.id, req.body);
+		res.status(200).send(contact);
+	})
+);
 
-const updateFavorite = async (req, res, next) => {
-	const { id } = req.params;
-	const { isFavorite = false } = req.body;
+router.patch(
+	"/:id/favorite",
+	validate(updateFavoriteSchema),
+	catchErrors(async (req, res, next) => {
+		const contact = await contactsService.updateOne(req.params.id, req.body);
+		res.status(200).send(contact);
+	})
+);
 
-	try {
-		const result = await service.updateContact(id, { isFavorite });
-		if (result) {
-			res.json({
-				status: "success",
-				code: 200,
-				data: { contact: result },
-			});
-		} else {
-			res.status(404).json({
-				status: "error",
-				code: 404,
-				message: `Not found task id: ${id}`,
-				data: "Not Found",
-			});
-		}
-	} catch (e) {
-		console.error(e);
-		next(e);
-	}
-};
+router.delete(
+	"/:id",
+	catchErrors(async (req, res, next) => {
+		await contactsService.deleteOne(req.params.id);
+		res.status(204).send();
+	})
+);
 
-const remove = async (req, res, next) => {
-	const { id } = req.params;
-
-	try {
-		const result = await service.removeContact(id);
-		if (result) {
-			res.json({
-				status: "success",
-				code: 200,
-				data: { contact: result },
-			});
-		} else {
-			res.status(404).json({
-				status: "error",
-				code: 404,
-				message: `Not found task id: ${id}`,
-				data: "Not Found",
-			});
-		}
-	} catch (e) {
-		console.error(e);
-		next(e);
-	}
-};
-
-module.exports = {
-	getAll,
-	getById,
-	add,
-	update,
-	updateFavorite,
-	remove,
-};
+exports.contactsController = router;

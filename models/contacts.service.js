@@ -1,29 +1,45 @@
-const Contacts = require("./mongoSchemas");
+const { ContactsModel } = require("./contacts.model");
+const { NotFound, Conflict } = require("http-errors");
 
-const listContacts = () => {
-	return Contacts.find();
-};
 
-const getContactById = (contactId) => {
-	return Contacts.findOne({ _id: contactId });
-};
+class ContactsService {
+	async create(reqBody) {
+		const existingContact = await ContactsModel.findOne({ name: reqBody.name });
+		if (existingContact) {
+			throw new Conflict("Contact with such name already exists");
+		}
 
-const addContact = ({ name, email, phone }) => {
-	return Contacts.create({ name, email, phone });
-};
+		return ContactsModel.create(reqBody);
+	}
 
-const removeContact = (contactId) => {
-	return Contacts.findByIdAndRemove({ _id: contactId });
-};
+	async getAll() {
+		return ContactsModel.find();
+	}
 
-const updateContact = (contactId, fields) => {
-	return Contacts.findByIdAndUpdate({ _id: contactId }, fields);
-};
+	async getById(id) {
+		const contact = await ContactsModel.findById(id);
+		if (!contact) {
+			throw new NotFound(`Contact with id '${id}' not found`);
+		}
 
-module.exports = {
-	listContacts,
-	getContactById,
-	addContact,
-	removeContact,
-	updateContact,
-};
+		return contact;
+	}
+
+	async updateOne(id, updateParams) {
+		const contact = await ContactsModel.updateContact(id, updateParams);
+		if (!contact) {
+			throw new NotFound(`Contact with id '${id}' was not found`);
+		}
+
+		return contact;
+	}
+
+	async deleteOne(id) {
+		const deletedContact = await ContactsModel.findByIdAndDelete(id);
+		if (!deletedContact) {
+			throw new NotFound(`Contact with id '${id}' was not found`);
+		}
+	}
+}
+
+exports.contactsService = new ContactsService();

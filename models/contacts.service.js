@@ -1,7 +1,6 @@
 const { ContactsModel } = require("./contacts.model");
 const { NotFound, Conflict } = require("http-errors");
 
-
 class ContactsService {
 	async create(reqBody) {
 		const existingContact = await ContactsModel.findOne({ name: reqBody.name });
@@ -19,7 +18,7 @@ class ContactsService {
 	async getById(id) {
 		const contact = await ContactsModel.findById(id);
 		if (!contact) {
-			throw new NotFound(`Contact with id '${id}' not found`);
+			throw new NotFound({ message: `Contact with id '${id}' not found` });
 		}
 
 		return contact;
@@ -28,7 +27,7 @@ class ContactsService {
 	async updateOne(id, updateParams) {
 		const contact = await ContactsModel.updateContact(id, updateParams);
 		if (!contact) {
-			throw new NotFound(`Contact with id '${id}' was not found`);
+			throw new NotFound({ message: `Contact with id '${id}' was not found` });
 		}
 
 		return contact;
@@ -37,7 +36,7 @@ class ContactsService {
 	async deleteOne(id) {
 		const deletedContact = await ContactsModel.findByIdAndDelete(id);
 		if (!deletedContact) {
-			throw new NotFound(`Contact with id '${id}' was not found`);
+			throw new NotFound({ message: `Contact with id '${id}' was not found` });
 		}
 	}
 }

@@ -3,6 +3,7 @@ const { NotFound, Conflict, Forbidden, Unauthorized } = require("http-errors");
 const { getConfig } = require("../config");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const gravatar = require("gravatar");
 
 class UsersService {
 	async signUp(userParams) {
@@ -14,6 +15,7 @@ class UsersService {
 		const createdUser = await UsersModel.create({
 			email,
 			password: await this.#hashPassword(password),
+			avatarURL: gravatar.url(email),
 		});
 
 		return {

@@ -10,7 +10,7 @@ const router = Router();
 router.post(
 	"/signup",
 	validate(signUpSchema),
-  catchErrors(async (req, res, next) => {
+	catchErrors(async (req, res, next) => {
 		const user = await usersService.signUp(req.body);
 		res.status(201).send(user);
 	})
@@ -29,7 +29,7 @@ router.get(
 	"/current",
 	authorize,
 	catchErrors(async (req, res, next) => {
-		const user = await usersService.getCurrentUser(req.userId);
+		const user = await usersService.getCurrentUser(req);
 		res.status(200).send(user);
 	})
 );
@@ -38,8 +38,8 @@ router.get(
 	"/logout",
 	authorize,
 	catchErrors(async (req, res, next) => {
-		req.logout();
-		res.redirect("/");
+		await usersService.logout(req);
+		res.status(204).send();
 	})
 );
 

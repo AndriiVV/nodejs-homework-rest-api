@@ -39,17 +39,28 @@ class UsersService {
 			throw new Unauthorized({ message: "Email or password is wrong" });
 		}
 
-    const token = this.#generateToken(user.id);
-    await UsersModel.findOneAndUpdate({ email }, { token });
+		const token = this.#generateToken(user.id);
+		await UsersModel.findOneAndUpdate({ email }, { token });
 		return {
 			token,
 			user: { email: user.email, subscription: user.subscription },
 		};
 	}
 
-	async getCurrentUser(userId) {
-		const user = await UsersModel.findById(userId);
-		if (!user) {
+	async logout(req) {
+		const user = await UsersModel.findById(req.userId);
+		const token = req.headers.authorization.replace("Bearer ", "");
+		if (!user || token !== user.token) {
+			throw new Unauthorized({ message: "Not authorized" });
+		}
+
+		await UsersModel.findOneAndUpdate({ _id: req.userId }, { token: null });
+	}
+
+	async getCurrentUser(req) {
+		const user = await UsersModel.findById(req.userId);
+		const token = req.headers.authorization.replace("Bearer ", "");
+		if (!user || token !== user.token) {
 			throw new Unauthorized({ message: "Not authorized" });
 		}
 

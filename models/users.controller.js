@@ -22,23 +22,15 @@ const upload = multer({
 	}),
 });
 
-// router.patch(
-// 	"/avatar",
-// 	authorize,
-// 	upload.single("avatar"),
-// 	(req, res, next) => {
-// 		res.send();
-// 	}
-// );
-
 router.patch(
 	"/avatars",
 	authorize,
-	compressImage(),
 	upload.single("avatar"),
-	(req, res, next) => {
-		res.send();
-	}
+	compressImage(),
+  catchErrors(async (req, res, next) => {
+    await usersService.updateAvatar(req);
+    res.status(200).send({ avatarURL: req.file.path });
+	})
 );
 
 router.post(
@@ -54,8 +46,8 @@ router.post(
 	"/login",
 	validate(loginSchema),
 	catchErrors(async (req, res, next) => {
-		const loginResult = await usersService.login(req.body);
-		res.status(200).send(loginResult);
+    const loginResult = await usersService.login(req.body);
+    res.status(200).send(loginResult);
 	})
 );
 

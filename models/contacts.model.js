@@ -16,11 +16,11 @@ const contactsSchema = new Schema({
 	favorite: {
 		type: Boolean,
 		default: false,
-  },
-  owner: {
-    type: SchemaTypes.ObjectId,
-    ref: 'User',
-  },
+	},
+	owner: {
+		type: SchemaTypes.ObjectId,
+		ref: "User",
+	},
 });
 
 contactsSchema.statics.updateContact = (id, updateParams) => {

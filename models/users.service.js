@@ -23,6 +23,7 @@ class UsersService {
 				email: createdUser.email,
 				subscription: createdUser.subscription,
 			},
+			userId: createdUser._id,
 		};
 	}
 
@@ -48,6 +49,16 @@ class UsersService {
 			user: { email: user.email, subscription: user.subscription },
 		};
 	}
+
+  async updateAvatar(req) {
+    const user = await UsersModel.findById(req.userId);
+    const token = req.headers.authorization.replace("Bearer ", "");
+    if (!user || token !== user.token) {
+      throw new Unauthorized({ message: "Not authorized" });
+    }
+
+    await UsersModel.findOneAndUpdate({ _id: req.userId }, { avatarURL: req.file.path });
+  }
 
 	async logout(req) {
 		const user = await UsersModel.findById(req.userId);

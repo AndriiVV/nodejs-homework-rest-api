@@ -2,7 +2,7 @@
 const Jimp = require("jimp");
 const path = require("path");
 const fs = require("fs").promises;
-const DESTINATION = "avatar";
+const DESTINATION = "public/avatars";
 
 exports.compressImage = () => {
 	return async (req, res, next) => {

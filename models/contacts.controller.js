@@ -7,6 +7,7 @@ const {
 } = require("./contacts.schemas");
 const { contactsService } = require("./contacts.service");
 const { catchErrors } = require("../middlewares/catchErrors");
+const { authorize } = require("../middlewares/authorize");
 
 const router = Router();
 
@@ -27,10 +28,11 @@ router.get(
 );
 
 router.post(
-	"/",
+  "/",
+  authorize,
 	validate(createContactSchema),
-	catchErrors(async (req, res, next) => {
-		const contact = await contactsService.create(req.body);
+  catchErrors(async (req, res, next) => {
+    const contact = await contactsService.create({ ...req.body, owner: req.userId });
 		res.status(201).send(contact);
 	})
 );
@@ -39,7 +41,12 @@ router.put(
 	"/:id",
 	validate(updateContactSchema),
 	catchErrors(async (req, res, next) => {
-		const contact = await contactsService.updateOne(req.params.id, req.body);
+		const owner = req.userId;
+		const contact = await contactsService.updateOne(
+			req.params.id,
+			req.body,
+			owner
+		);
 		res.status(200).send(contact);
 	})
 );

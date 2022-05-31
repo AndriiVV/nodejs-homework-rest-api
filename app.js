@@ -3,13 +3,10 @@ const dotenv = require("dotenv");
 const path = require("path");
 const morgan = require("morgan");
 const mongoose = require("mongoose");
-// const multer = require("multer");
 
 const { getConfig } = require("./config");
 const { contactsController } = require("./models/contacts.controller");
 const { usersController } = require("./models/users.controller");
-
-// const upload = multer({ dest: "public" });
 
 class ContactsServer {
 	#app;
@@ -48,7 +45,7 @@ class ContactsServer {
 	#initMiddlewares() {
 		this.#app.use(express.json());
 		this.#app.use(morgan("combined"));
-		this.#app.use("/", express.static("public"));
+		this.#app.use("/public", express.static(__dirname + "/public"));
 	}
 
 	#initRoutes() {

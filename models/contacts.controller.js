@@ -4,7 +4,7 @@ const {
 	createContactSchema,
 	updateContactSchema,
 	updateFavoriteSchema,
-} = require("./schemas");
+} = require("./contacts.schemas");
 const { contactsService } = require("./contacts.service");
 const { catchErrors } = require("../middlewares/catchErrors");
 

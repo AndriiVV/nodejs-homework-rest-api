@@ -5,6 +5,7 @@ const morgan = require("morgan");
 const mongoose = require("mongoose");
 const { getConfig } = require("./config");
 const { contactsController } = require("./models/contacts.controller");
+const { usersController } = require("./models/users.controller");
 
 class ContactsServer {
 	#app;
@@ -17,7 +18,7 @@ class ContactsServer {
 		this.#initMiddlewares();
 		this.#initRoutes();
 		this.#initErrorHandling();
-		this.#startListening(); 
+		this.#startListening();
 	}
 
 	#initServer() {
@@ -46,6 +47,7 @@ class ContactsServer {
 	}
 
 	#initRoutes() {
+		this.#app.use("/users", usersController);
 		this.#app.use("/api/contacts", contactsController);
 	}
 

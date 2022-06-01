@@ -7,8 +7,7 @@ class ContactsService {
 		if (existingContact) {
 			throw new Conflict("Contact with such name already exists");
 		}
-
-		return ContactsModel.create(reqBody);
+    return ContactsModel.create(reqBody);
 	}
 
 	async getAll() {

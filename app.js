@@ -3,6 +3,7 @@ const dotenv = require("dotenv");
 const path = require("path");
 const morgan = require("morgan");
 const mongoose = require("mongoose");
+
 const { getConfig } = require("./config");
 const { contactsController } = require("./models/contacts.controller");
 const { usersController } = require("./models/users.controller");
@@ -44,11 +45,12 @@ class ContactsServer {
 	#initMiddlewares() {
 		this.#app.use(express.json());
 		this.#app.use(morgan("combined"));
+		this.#app.use("/public", express.static(__dirname + "/public"));
 	}
 
 	#initRoutes() {
 		this.#app.use("/users", usersController);
-		this.#app.use("/api/contacts", contactsController);
+    this.#app.use("/api/contacts", contactsController);
 	}
 
 	#initErrorHandling() {

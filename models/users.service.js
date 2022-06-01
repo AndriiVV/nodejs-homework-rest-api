@@ -3,6 +3,7 @@ const { NotFound, Conflict, Forbidden, Unauthorized } = require("http-errors");
 const { getConfig } = require("../config");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const gravatar = require("gravatar");
 
 class UsersService {
 	async signUp(userParams) {
@@ -14,6 +15,7 @@ class UsersService {
 		const createdUser = await UsersModel.create({
 			email,
 			password: await this.#hashPassword(password),
+			avatarURL: gravatar.url(email),
 		});
 
 		return {
@@ -21,6 +23,7 @@ class UsersService {
 				email: createdUser.email,
 				subscription: createdUser.subscription,
 			},
+			userId: createdUser._id,
 		};
 	}
 
@@ -46,6 +49,16 @@ class UsersService {
 			user: { email: user.email, subscription: user.subscription },
 		};
 	}
+
+  async updateAvatar(req) {
+    const user = await UsersModel.findById(req.userId);
+    const token = req.headers.authorization.replace("Bearer ", "");
+    if (!user || token !== user.token) {
+      throw new Unauthorized({ message: "Not authorized" });
+    }
+
+    await UsersModel.findOneAndUpdate({ _id: req.userId }, { avatarURL: req.file.path });
+  }
 
 	async logout(req) {
 		const user = await UsersModel.findById(req.userId);

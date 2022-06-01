@@ -11,17 +11,20 @@ class UsersService {
 		const existingUser = await UsersModel.findOne({ email });
 		if (existingUser) {
 			throw new Conflict("User with such email already exists");
-		}
+    }
+    const verificationToken = this.#generateToken(email);
+    
 		const createdUser = await UsersModel.create({
 			email,
 			password: await this.#hashPassword(password),
-			avatarURL: gravatar.url(email),
+      avatarURL: gravatar.url(email),
+      verificationToken,
 		});
-
 		return {
 			user: {
 				email: createdUser.email,
-				subscription: createdUser.subscription,
+        subscription: createdUser.subscription,
+        verificationToken: createdUser.verificationToken,
 			},
 			userId: createdUser._id,
 		};
@@ -50,15 +53,18 @@ class UsersService {
 		};
 	}
 
-  async updateAvatar(req) {
-    const user = await UsersModel.findById(req.userId);
-    const token = req.headers.authorization.replace("Bearer ", "");
-    if (!user || token !== user.token) {
-      throw new Unauthorized({ message: "Not authorized" });
-    }
+	async updateAvatar(req) {
+		const user = await UsersModel.findById(req.userId);
+		const token = req.headers.authorization.replace("Bearer ", "");
+		if (!user || token !== user.token) {
+			throw new Unauthorized({ message: "Not authorized" });
+		}
 
-    await UsersModel.findOneAndUpdate({ _id: req.userId }, { avatarURL: req.file.path });
-  }
+		await UsersModel.findOneAndUpdate(
+			{ _id: req.userId },
+			{ avatarURL: req.file.path }
+		);
+	}
 
 	async logout(req) {
 		const user = await UsersModel.findById(req.userId);
@@ -77,7 +83,20 @@ class UsersService {
 			throw new Unauthorized({ message: "Not authorized" });
 		}
 
-		return { email: user.email, subscription: user.subscription };
+		return { email: user.email, subscription: user.subscription, verificationToken: user.verificationToken, verify: user.verify};
+	}
+
+	async getUserVerified(req) {
+		const user = await UsersModel.findOne({
+			verificationToken: req.verificationToken,
+		});
+		if (!user) {
+			throw new NotFound({ message: "Not found" });
+		}
+		await UsersModel.findOneAndUpdate(
+			{ _id: user._id },
+			{ verificationToken: null, verify: true }
+		);
 	}
 
 	async #hashPassword(password) {

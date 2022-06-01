@@ -3,6 +3,7 @@ const dotenv = require("dotenv");
 const path = require("path");
 const morgan = require("morgan");
 const mongoose = require("mongoose");
+const sgMail = require("@sendgrid/mail");
 
 const { getConfig } = require("./config");
 const { contactsController } = require("./models/contacts.controller");
@@ -30,9 +31,10 @@ class ContactsServer {
 		const envPath = path.join(__dirname, "./.env");
 		dotenv.config({ path: envPath });
 		this.#config = getConfig();
+		sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 	}
 
-	async #initDatabase() {
+  	async #initDatabase() {
 		try {
 			await mongoose.connect(this.#config.database.url);
 			console.log("Database connection successful");
@@ -50,7 +52,7 @@ class ContactsServer {
 
 	#initRoutes() {
 		this.#app.use("/users", usersController);
-    this.#app.use("/api/contacts", contactsController);
+		this.#app.use("/api/contacts", contactsController);
 	}
 
 	#initErrorHandling() {
